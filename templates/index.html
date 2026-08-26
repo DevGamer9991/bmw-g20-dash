@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BMW Dashboard</title>
+    <!-- Canvas Gauges Library -->
+    <script src="https://cdn.rawgit.com/Mikhus/canvas-gauges/gh-pages/download/2.1.7/radial/gauge.min.js"></script>
+    <!-- Socket.IO Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <style>
+        body {
+            background-color: #000;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="rpmGauge"></canvas>
+
+    <script>
+        // Initialize the gauge
+        var gauge = new RadialGauge({
+            renderTo: 'rpmGauge',
+            width: 400,
+            height: 400,
+            units: "RPM",
+            minValue: 0,
+            maxValue: 8000,
+            majorTicks: ["0", "1", "2", "3", "4", "5", "6", "7", "8"],
+            minorTicks: 4,
+            strokeTicks: true,
+            highlights: [
+                { "from": 6500, "to": 8000, "color": "rgba(200, 50, 50, .75)" }
+            ],
+            colorPlate: "#222",
+            colorMajorTicks: "#f5f5f5",
+            colorMinorTicks: "#ddd",
+            colorTitle: "#fff",
+            colorUnits: "#ccc",
+            colorNumbers: "#eee",
+            colorNeedle: "rgba(240, 128, 128, 1)",
+            colorNeedleEnd: "rgba(255, 160, 122, .9)",
+            valueBox: true,
+            valueText: "{value} RPM",
+            valueInt: 4,
+            valueDec: 0,
+            animationRule: "linear",
+            animationDuration: 50, // Matches your 20Hz (50ms) polling for fluid motion
+            fontValueSize: 30
+        }).draw();
+
+        // Connect to WebSocket and update gauge
+        var socket = io();
+        socket.on('rpm_data', function(msg) {
+            gauge.value = msg.rpm;
+        });
+    </script>
+</body>
+</html>
