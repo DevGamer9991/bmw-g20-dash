@@ -2,7 +2,7 @@ import socket
 import struct
 import time
 import threading
-from flask import Flask, render_template
+from flask import Flask, render_template, send_from_directory
 from flask_socketio import SocketIO
 
 AGENT_IP = "192.168.0.11"
@@ -72,6 +72,8 @@ def car_polling_thread():
                 raw_rpm = struct.unpack(">H", data)[0]
                 rpm = raw_rpm * 0.5
                 
+                print(rpm)
+                
                 # Push data to the webpage
                 socketio.emit('rpm_data', {'rpm': rpm})
 
@@ -89,8 +91,16 @@ def car_polling_thread():
 def index():
     return render_template('index.html')
 
+@app.route("/gauge.min.js")
+def download_gauge():
+    return send_from_directory(directory="./templates", path="gauge.min.js")
+
+@app.route("/socket.io.js")
+def download_socket_io():
+    return send_from_directory(directory="./templates", path="socket.io.js")
+
 if __name__ == "__main__":
     # Start the ENET polling in the background
     threading.Thread(target=car_polling_thread, daemon=True).start()
     # Run the web server
-    socketio.run(app, host="0.0.0.0", port=8080)
+    socketio.run(app, host="0.0.0.0", port=8080, allow_unsafe_werkzeug=True)
