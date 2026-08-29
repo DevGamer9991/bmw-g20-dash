@@ -6,6 +6,17 @@
     <title>BMW Dashboard</title>
     <script src="./socket.io.js"></script>
     <style>
+
+        @font-face {
+            font-family: 'Inter';
+            src:url('fonts/Inter_18pt-Medium.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        html {
+            cursor: none;
+        }
         body {
             background: #000;
             color: #fff;
@@ -15,6 +26,7 @@
             height: 100vh;
             margin: 0;
             font-family: Arial, sans-serif;
+            cursor: none;
         }
 
         .gauge-wrap {
@@ -74,29 +86,26 @@
     </style>
 </head>
 <body>
-    <div class="gauge-wrap">
-        <div class="label">
-            <span>Engine RPM</span>
-            <span id="rpmValue">0 RPM</span>
-        </div>
-
-        <div class="bar">
-            <div id="rpmFill" class="fill"></div>
-            <div class="redline"></div>
-        </div>
-
-        <div class="ticks">
-            <span>0</span>
-            <span>2000</span>
-            <span>4000</span>
-            <span>6000</span>
-            <span>7000</span>
-        </div>
+    <div style="width: 480px; height: 320px; position: relative; background: black; overflow: hidden">
+        <div style="width: 196px; height: 145px; left: 264px; top: 27px; position: absolute; background: #595959; border-radius: 21px"></div>
+        <div style="width: 165px; height: 36px; left: 279px; top: 32px; position: absolute; text-align: center; justify-content: center; display: flex; flex-direction: column; color: white; font-size: 20px; font-family: Inter; font-weight: 400; word-wrap: break-word">Intake Air Temp</div>
+        <div style="width: 165px; height: 80px; left: 279px; top: 72px; position: absolute; text-align: center; justify-content: center; display: flex; flex-direction: column; color: #00FF2B; font-size: 40px; font-family: Inter; font-weight: 400; word-wrap: break-word" id="iatValue">130°</div>
+        <div style="width: 196px; height: 88px; left: 19px; top: 205px; position: absolute; background: #595959; border-radius: 21px"></div>
+        <div style="width: 165px; height: 21.85px; left: 34px; top: 208.03px; position: absolute; text-align: center; justify-content: center; display: flex; flex-direction: column; color: white; font-size: 20px; font-family: Inter; font-weight: 400; word-wrap: break-word">RPM</div>
+        <div style="width: 165px; height: 48.55px; left: 34px; top: 232.31px; position: absolute; text-align: center; justify-content: center; display: flex; flex-direction: column; color: #00FF2B; font-size: 40px; font-family: Inter; font-weight: 400; word-wrap: break-word" id="rpmValue">3000</div>
+        <div style="width: 196px; height: 88px; left: 264px; top: 205px; position: absolute; background: #595959; border-radius: 21px"></div>
+        <div style="width: 165px; height: 21.85px; left: 279px; top: 208.03px; position: absolute; text-align: center; justify-content: center; display: flex; flex-direction: column; color: white; font-size: 20px; font-family: Inter; font-weight: 400; word-wrap: break-word">AFR</div>
+        <div style="width: 165px; height: 48.55px; left: 279px; top: 232.31px; position: absolute; text-align: center; justify-content: center; display: flex; flex-direction: column; color: #00FF2B; font-size: 40px; font-family: Inter; font-weight: 400; word-wrap: break-word" id="afrValue">14.56</div>
+        <div style="width: 196px; height: 145px; left: 19px; top: 27px; position: absolute; background: #595959; border-radius: 21px"></div>
+        <div style="width: 165px; height: 36px; left: 34px; top: 32px; position: absolute; text-align: center; justify-content: center; display: flex; flex-direction: column; color: white; font-size: 20px; font-family: Inter; font-weight: 400; word-wrap: break-word">Boost Pressure</div>
+        <div style="width: 165px; height: 80px; left: 34px; top: 72px; position: absolute; text-align: center; justify-content: center; display: flex; flex-direction: column; color: #00FF2B; font-size: 40px; font-family: Inter; font-weight: 400; word-wrap: break-word" id="boostValue">24 psi</div>
     </div>
 
     <script>
-        var fill = document.getElementById('rpmFill');
+        // var fill = document.getElementById('rpmFill');
         var rpmValue = document.getElementById('rpmValue');
+
+        var boostValue = document.getElementById('boostValue');
 
         function updateRPM(rpm) {
             var min = 0;
@@ -104,17 +113,56 @@
             var clamped = Math.max(min, Math.min(max, rpm));
             var pct = (clamped / max) * 100;
 
-            fill.style.width = pct + '%';
-            rpmValue.textContent = Math.round(clamped) + ' RPM';
+            // fill.style.width = pct + '%';
+            rpmValue.textContent = Math.round(clamped) + '';
+        }
+
+        function updateBoost(boost) {
+            //var min = 0;
+            //var max = 30; // Assuming max boost is 30 psi
+            //var clamped = Math.max(min, Math.min(max, boost));
+            boostValue.textContent = boost + " psi";
+
+            if (boost >= 14) {
+                boostValue.style.color = "#00FF2B";
+            }
+            else if (boost >=15 && boost <= 19) {
+                boostValue.style.color = "orange";
+            }
+            else if(boost >= 20) {
+                boostValue.style.color = "red";
+            }
+        }
+
+        function updateIAT(iat) {
+            //var min = 0;
+            //var max = 30; // Assuming max boost is 30 psi
+            //var clamped = Math.max(min, Math.min(max, boost));
+            iatValue.textContent = iat + " °F";
+
+            //if (boost >= 14) {
+            //    boostValue.style.color = "#00FF2B";
+            //}
+            //else if (boost >=15 && boost <= 19) {
+            //    boostValue.style.color = "orange";
+            //}
+            //else if(boost >= 20) {
+            //    boostValue.style.color = "red";
+            //}
         }
 
         var socket = io();
-        socket.on('rpm_data', function(msg) {
+        socket.on('car_data', function(msg) {
             updateRPM(msg.rpm);
+            updateBoost(msg.boost_pressure);
+            updateIAT(msg.intake_air_temp)
             console.log(msg.rpm);
+            console.log(msg.boost_pressure);
         });
 
-        updateRPM(6500);
+        updateRPM(0);
+        updateBoost(0);
+        updateIAT(0);
     </script>
 </body>
 </html>
