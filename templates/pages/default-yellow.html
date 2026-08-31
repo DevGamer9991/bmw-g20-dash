@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BMW Dashboard</title>
+    <script src="/socket.io.js"></script>
+    <script src="/dashboard.js"></script>
+    <style>
+
+        @font-face {
+            font-family: 'Michroma';
+            src:url('/files/Michroma-Regular.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        html {
+            cursor: none;
+        }
+        body {
+            background: #000;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            cursor: none;
+        }
+    </style>
+</head>
+<body>
+    <div style="width: 480px; height: 320px; position: relative; background: black; overflow: hidden">
+        <div style="width: 212px; height: 61px; left: 28px; top: 42px; position: absolute; color: #FFEE00; font-size: 20px; font-family: Michroma; font-weight: 400; word-wrap: break-word">Boost Pressure</div>
+        <div style="width: 192px; height: 84px; left: 259px; top: 31px; position: absolute; text-align: right; justify-content: center; display: flex; flex-direction: column; color: #FFEE00; font-size: 36px; font-family: Michroma; font-weight: 400; word-wrap: break-word" id="boostValue">--- psi</div>
+        <div style="width: 98.24px; height: 95px; left: 29px; top: 194px; position: absolute; color: #FFEE00; font-size: 20px; font-family: Michroma; font-weight: 400; word-wrap: break-word">RPM</div>
+        <div style="width: 185px; height: 64px; left: 28px; top: 225px; position: absolute; text-align: center; justify-content: center; display: flex; flex-direction: column; color: #FFEE00; font-size: 40px; font-family: Michroma; font-weight: 400; word-wrap: break-word" id="rpmValue">----</div>
+        <div style="width: 98.24px; height: 95px; left: 291px; top: 194px; position: absolute; color: #FFEE00; font-size: 20px; font-family: Michroma; font-weight: 400; word-wrap: break-word">IAT</div>
+        <div style="width: 161px; left: 290px; top: 232px; position: absolute; text-align: right; justify-content: center; display: flex; flex-direction: column; color: #FFEE00; font-size: 36px; font-family: Michroma; font-weight: 400; word-wrap: break-word" id="iatValue">---°</div>
+    </div>
+
+    <script>
+        var dashboard = window.BmwDashboard();
+
+        let tapCount = 0;
+        let timer = null;
+
+        document.addEventListener('click', () => {
+            tapCount++;
+
+            // If this is the very first tap, start the 5-second countdown
+            if (tapCount === 1) {
+                timer = setTimeout(() => {
+                    // This runs if 5 seconds pass without reaching 5 taps
+                    tapCount = 0;
+                }, 5000); // 5000 milliseconds = 5 seconds
+            }
+
+            // Check if they successfully reached 5 taps before the timer reset
+            if (tapCount === 5) {
+                clearTimeout(timer); // Stop the timer so it doesn't reset in the background
+                
+                // Redirect to the new location
+                window.location.href = "/menu"; 
+            }
+        });
+    </script>
+</body>
+</html>

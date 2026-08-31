@@ -1,3 +1,4 @@
+import os
 import socket
 import struct
 import time
@@ -72,6 +73,18 @@ def car_polling_thread():
         # Intake Air Temperature
         send_hsfz_command(sock, bytes.fromhex("2C 01 F3 00 58 1E 01 01"))
         read_hsfz_response(sock)
+        
+        # Oil Temp
+        send_hsfz_command(sock, bytes.fromhex("2C 01 F3 00 44 02 01 02"))
+        read_hsfz_response(sock)
+        
+        # Coolant Temp
+        send_hsfz_command(sock, bytes.fromhex("2C 01 F3 00 43 00 01 02"))
+        read_hsfz_response(sock)
+        
+        # Coolant Temp (Radiator Outlet)
+        send_hsfz_command(sock, bytes.fromhex("2C 01 F3 00 4A 21 01 02"))
+        read_hsfz_response(sock)
 
         read_payload = bytes.fromhex("22 F3 00")
 
@@ -100,7 +113,27 @@ def car_polling_thread():
                 
                 intake_air_temp_f = (intake_air_temp_c * 9/5) + 32
                 
-                socketio.emit('car_data', {'rpm': rpm, 'boost_pressure': boost_psi, 'intake_air_temp': round(intake_air_temp_f)})
+                oil_temp_raw = struct.unpack(">H", uds_resp[10:12])[0]
+                oil_temp_c = round(oil_temp_raw * 0.0071948, 2)
+                
+                print("Oil Temp (C):", oil_temp_c)
+                print("Oil Temp (Raw):", oil_temp_raw)
+                
+                oil_temp_f = (oil_temp_c * 9/5) + 32
+                
+                coolant_temp_raw = struct.unpack(">H", uds_resp[12:14])[0]
+                coolant_temp_c = (coolant_temp_raw * 0.75) - 48
+                
+                # print("Coolant Temp (C):", coolant_temp_c)
+                # print("Coolant Temp (Raw):", coolant_temp_raw)
+                
+                coolant_temp_rad_out_raw = struct.unpack(">H", uds_resp[14:16])[0]
+                coolant_temp_rad_out_c = (coolant_temp_rad_out_raw * 0.75) - 48
+                
+                # print("Coolant Temp (Radiator Outlet) (C):", coolant_temp_rad_out_c)
+                # print("Coolant Temp (Radiator Outlet) (Raw):", coolant_temp_rad_out_raw)
+
+                socketio.emit('car_data', {'rpm': rpm, 'boost_pressure': boost_psi, 'intake_air_temp': round(intake_air_temp_f), 'oil_temp': round(oil_temp_f)})
 
             elif uds_resp.startswith(b"\x7F"):
                 print(f"[-] ECU busy/NACK: {uds_resp.hex()}")
@@ -114,19 +147,52 @@ def car_polling_thread():
     finally:
         sock.close()
 
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-@app.route("/gauge.min.js")
-def download_gauge():
-    return send_from_directory(directory="./templates", path="gauge.min.js")
-
 @app.route("/socket.io.js")
 def download_socket_io():
     return send_from_directory(directory="./templates", path="socket.io.js")
 
-@app.route("/fonts/<path:filename>")
+@app.route("/dashboard.js")
+def download_dashboard_js():
+    return send_from_directory(directory="./templates", path="dashboard.js")
+
+@app.route('/')
+def index():
+    return render_template('./pages/default-yellow.html')
+
+@app.route('/menu')
+def menu():
+    # Define the path to your 'pages' folder
+    pages_directory = os.path.join(app.root_path, 'templates/pages')
+    pages_list = []
+    
+    # Check if the folder exists to prevent errors
+    if os.path.exists(pages_directory):
+        for filename in os.listdir(pages_directory):
+            # Only process HTML files (adjust if your pages are .md, etc.)
+            if filename.endswith('.html'):
+                page_id = os.path.splitext(filename)[0]
+                
+                # Format for display: replace hyphens with spaces and capitalize
+                display_name = page_id.replace('-', ' ').title()
+                
+                # Add to our list as a dictionary
+                pages_list.append({
+                    'id': page_id,
+                    'name': display_name
+                })
+                
+    # Sort alphabetically so the menu is organized
+    pages_list.sort(key=lambda x: x['name'])
+    
+    # Pass the list to your HTML template
+    return render_template('menu.html', pages=pages_list)
+
+# take the /<path:filename> route and serve the html file from pages the directory
+@app.route('/page/<path:filename>')
+def serve_page(filename):
+    return render_template(f'./pages/{filename}.html')
+
+@app.route("/files/<path:filename>")
 def download_font(filename):
     return send_from_directory(directory="./templates/static/", path=filename)
 

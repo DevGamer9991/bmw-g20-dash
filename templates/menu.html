@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu</title>
+    <style>
+        @font-face {
+            font-family: 'Michroma';
+            src:url('files/Michroma-Regular.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        html, body {
+            cursor: none;
+            background: #000;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Replaced absolute positioning with Flexbox */
+        .menu-container {
+            width: 480px; 
+            height: 320px; 
+            background: black; 
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 17px;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        .menu-title {
+            text-align: center; 
+            color: white; 
+            font-size: 36px; 
+            font-family: 'Michroma', sans-serif; 
+            font-weight: 400; 
+            margin-bottom: 25px; /* Spacing below the title */
+            flex-shrink: 0;
+        }
+
+        /* Container that holds the dynamic buttons */
+        .button-list {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px; /* Replicates your exact 10px spacing */
+            overflow-y: auto; /* Allows scrolling if you have a lot of pages */
+            padding-bottom: 20px;
+        }
+
+        /* Hides the scrollbar to keep your clean aesthetic */
+        .button-list::-webkit-scrollbar {
+            display: none;
+        }
+
+        .menu-btn {
+            width: 423px; 
+            min-height: 61px; /* min-height prevents shrinking */
+            background: #202020; 
+            border-radius: 10px; 
+            border: 2px #FFEE00 solid; 
+            color: #FFEE00; 
+            font-size: 16px; 
+            font-family: 'Michroma', sans-serif; 
+            font-weight: 400; 
+            display: flex; 
+            justify-content: center;
+            align-items: center; 
+            cursor: pointer; 
+            appearance: none; 
+            padding: 0;
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="menu-container">
+        <div class="menu-title">Menu</div>
+        
+        <div class="button-list">
+            {% for page in pages %}
+            <button type="button" class="menu-btn" onclick="window.location.href='/page/{{ page.id }}'">
+                {{ page.name }}
+            </button>
+            {% endfor %}
+        </div>
+    </div>
+
+</body>
+</html>
