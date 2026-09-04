@@ -26,8 +26,8 @@
 
         /* Replaced absolute positioning with Flexbox */
         .menu-container {
-            width: 480px; 
-            height: 320px; 
+            width: 800px; 
+            height: 480px; 
             background: black; 
             overflow: hidden;
             display: flex;
@@ -88,7 +88,13 @@
 
     <div class="menu-container">
         <div class="menu-title">Menu</div>
-        
+
+        <!--Close the window-->
+        <div onclick="">
+            <div style="width: 132px; height: 61px; left: 18px; top: 18px; position: absolute; background: #202020; border-radius: 10px; border: 2px #FFEE00 solid"></div>
+            <div style="width: 132px; height: 61px; left: 18px; top: 18px; position: absolute; text-align: center; justify-content: center; display: flex; flex-direction: column; color: #FFEE00; font-size: 16px; font-family: Michroma; font-weight: 400; word-wrap: break-word">Exit</div>
+        </div>
+
         <div class="button-list">
             {% for page in pages %}
             <button type="button" class="menu-btn" onclick="window.location.href='/page/{{ page.id }}'">

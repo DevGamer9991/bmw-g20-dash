@@ -6,6 +6,7 @@
     <title>BMW Dashboard</title>
     <script src="/socket.io.js"></script>
     <script src="/dashboard.js"></script>
+    <script src="/menu.js"></script>
     <style>
 
         @font-face {
@@ -32,40 +33,17 @@
     </style>
 </head>
 <body>
-    <div style="width: 480px; height: 320px; position: relative; background: black; overflow: hidden">
-        <div style="width: 212px; height: 61px; left: 28px; top: 42px; position: absolute; color: #FFEE00; font-size: 20px; font-family: Michroma; font-weight: 400; word-wrap: break-word">Boost Pressure</div>
-        <div style="width: 192px; height: 84px; left: 259px; top: 31px; position: absolute; text-align: right; justify-content: center; display: flex; flex-direction: column; color: #FFEE00; font-size: 36px; font-family: Michroma; font-weight: 400; word-wrap: break-word" id="boostValue">--- psi</div>
-        <div style="width: 98.24px; height: 95px; left: 29px; top: 194px; position: absolute; color: #FFEE00; font-size: 20px; font-family: Michroma; font-weight: 400; word-wrap: break-word">RPM</div>
-        <div style="width: 185px; height: 64px; left: 28px; top: 225px; position: absolute; text-align: center; justify-content: center; display: flex; flex-direction: column; color: #FFEE00; font-size: 40px; font-family: Michroma; font-weight: 400; word-wrap: break-word" id="rpmValue">----</div>
-        <div style="width: 98.24px; height: 95px; left: 291px; top: 194px; position: absolute; color: #FFEE00; font-size: 20px; font-family: Michroma; font-weight: 400; word-wrap: break-word">IAT</div>
-        <div style="width: 161px; left: 290px; top: 232px; position: absolute; text-align: right; justify-content: center; display: flex; flex-direction: column; color: #FFEE00; font-size: 36px; font-family: Michroma; font-weight: 400; word-wrap: break-word" id="iatValue">---°</div>
+    <div style="width: 800px; height: 480px; position: relative; background: black; overflow: hidden">
+        <div style="width: 330.28px; height: 61px; left: 70px; top: 89px; position: absolute; color: #FFEE00; font-size: 20px; font-family: Michroma; font-weight: 400; word-wrap: break-word">Boost Pressure</div>
+        <div style="width: 299.12px; height: 84px; left: 429.88px; top: 78px; position: absolute; text-align: right; justify-content: center; display: flex; flex-direction: column; color: #FFEE00; font-size: 36px; font-family: Michroma; font-weight: 400; word-wrap: break-word" id="boostValue">000 psi</div>
+        <div style="width: 98.24px; height: 95px; left: 71px; top: 306px; position: absolute; color: #FFEE00; font-size: 20px; font-family: Michroma; font-weight: 400; word-wrap: break-word">RPM</div>
+        <div style="width: 185px; height: 64px; left: 70px; top: 337px; position: absolute; text-align: center; justify-content: center; display: flex; flex-direction: column; color: #FFEE00; font-size: 40px; font-family: Michroma; font-weight: 400; word-wrap: break-word" id="rpmValue">0000</div>
+        <div style="width: 98.24px; height: 95px; left: 569px; top: 306px; position: absolute; color: #FFEE00; font-size: 20px; font-family: Michroma; font-weight: 400; word-wrap: break-word">IAT</div>
+        <div style="width: 161px; left: 568px; top: 344px; position: absolute; text-align: right; justify-content: center; display: flex; flex-direction: column; color: #FFEE00; font-size: 36px; font-family: Michroma; font-weight: 400; word-wrap: break-word" id="iatValue">000°</div>
     </div>
 
     <script>
         var dashboard = window.BmwDashboard();
-
-        let tapCount = 0;
-        let timer = null;
-
-        document.addEventListener('click', () => {
-            tapCount++;
-
-            // If this is the very first tap, start the 5-second countdown
-            if (tapCount === 1) {
-                timer = setTimeout(() => {
-                    // This runs if 5 seconds pass without reaching 5 taps
-                    tapCount = 0;
-                }, 5000); // 5000 milliseconds = 5 seconds
-            }
-
-            // Check if they successfully reached 5 taps before the timer reset
-            if (tapCount === 5) {
-                clearTimeout(timer); // Stop the timer so it doesn't reset in the background
-                
-                // Redirect to the new location
-                window.location.href = "/menu"; 
-            }
-        });
     </script>
 </body>
 </html>

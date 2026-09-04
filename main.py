@@ -155,6 +155,10 @@ def download_socket_io():
 def download_dashboard_js():
     return send_from_directory(directory="./templates", path="dashboard.js")
 
+@app.route("/menu.js")
+def download_menu_js():
+    return send_from_directory(directory="./templates", path="menu.js")
+
 @app.route('/')
 def index():
     return render_template('./pages/default-yellow.html')
