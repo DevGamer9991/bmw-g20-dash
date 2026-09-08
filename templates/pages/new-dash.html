@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BMW Dashboard</title>
+    <script src="/socket.io.js"></script>
+    <script src="/dashboard.js"></script>
+    <script src="/menu.js"></script>
+    <style>
+
+        @font-face {
+            font-family: 'Michroma';
+            src:url('/files/Michroma-Regular.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        html {
+            cursor: none;
+        }
+        body {
+            background: #000;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            cursor: none;
+        }
+    </style>
+
+    <style>
+    #rpm-bars {
+        width: 573px;
+        display: flex;
+        gap: 7px;
+        align-items: center;
+    }
+
+    .rpm-bar {
+        width: 13px;
+        height: 57px;
+        border-radius: 3px;
+        opacity: 0.5;
+        transition: opacity 120ms ease, filter 120ms ease;
+    }
+
+    .rpm-bar.active {
+        opacity: 1;
+        filter: brightness(1.5);
+    }
+</style>
+</head>
+<body>
+
+    <div style="width: 800px; height: 480px; position: relative; background: black; overflow: hidden">
+  <div style="width: 186px; height: 40px; left: 11px; top: 416px; position: absolute; text-align: center; justify-content: center; display: flex; flex-direction: column; color: #DADADA; font-size: 20px; font-family: Michroma; font-weight: 400; word-wrap: break-word" id="boostValue">23.4 PSI</div>
+  <div style="width: 186px; height: 35px; left: 11px; top: 381px; position: absolute; text-align: center; justify-content: center; display: flex; flex-direction: column; color: #DADADA; font-size: 14px; font-family: Michroma; font-weight: 400; word-wrap: break-word">Boost Pressure</div>
+  <div style="width: 186px; height: 75px; left: 208px; top: 381px; position: absolute; background: #EC0000; border-radius: 11px" id="coolantTempBG"></div>
+  <div style="width: 186px; height: 40px; left: 208px; top: 416px; position: absolute; text-align: center; justify-content: center; display: flex; flex-direction: column; color: #DADADA; font-size: 20px; font-family: Michroma; font-weight: 400; word-wrap: break-word" id="coolantTempValue">104°</div>
+  <div style="width: 186px; height: 35px; left: 208px; top: 381px; position: absolute; text-align: center; justify-content: center; display: flex; flex-direction: column; color: #DADADA; font-size: 14px; font-family: Michroma; font-weight: 400; word-wrap: break-word" id="coolantTempLabel">Coolant Temp</div>
+  <div style="width: 186px; height: 75px; left: 405px; top: 381px; position: absolute; background: #EC0000; border-radius: 11px" id="oilTempBG"></div>
+  <div style="width: 186px; height: 40px; left: 405px; top: 416px; position: absolute; text-align: center; justify-content: center; display: flex; flex-direction: column; color: #DADADA; font-size: 20px; font-family: Michroma; font-weight: 400; word-wrap: break-word" id="oilTempValue">123°</div>
+  <div style="width: 186px; height: 35px; left: 405px; top: 381px; position: absolute; text-align: center; justify-content: center; display: flex; flex-direction: column; color: #DADADA; font-size: 14px; font-family: Michroma; font-weight: 400; word-wrap: break-word" id="oilTempLabel">Oil Temp</div>
+  <div style="width: 186px; height: 75px; left: 602px; top: 381px; position: absolute; background: #EC0000; border-radius: 11px" id="intakeAirTempBG"></div>
+  <div style="width: 186px; height: 40px; left: 602px; top: 416px; position: absolute; text-align: center; justify-content: center; display: flex; flex-direction: column; color: #DADADA; font-size: 20px; font-family: Michroma; font-weight: 400; word-wrap: break-word" id="iatValue">154°</div>
+  <div style="width: 186px; height: 35px; left: 602px; top: 381px; position: absolute; text-align: center; justify-content: center; display: flex; flex-direction: column; color: #DADADA; font-size: 14px; font-family: Michroma; font-weight: 400; word-wrap: break-word" id="iatLabel">IAT</div>
+  <div style="width: 573px; left: 113px; top: 49px; position: absolute; justify-content: flex-start; align-items: center; gap: 7px; display: inline-flex">
+    <div id="rpm-bars"></div>
+  </div>
+  <div style="width: 659px; height: 225px; left: 70px; top: 127px; position: absolute; text-align: center; justify-content: center; display: flex; flex-direction: column; color: #DADADA; font-size: 96px; font-family: Michroma; font-weight: 400; word-wrap: break-word" id="rpmValue">2506</div>
+  <div id="shift-indicator">
+    <div style="width: 358px; height: 52px; left: 226px; top: 127px; position: absolute; background: #EE0000; border-radius: 6px"></div>
+    <div style="width: 358px; height: 52px; left: 226px; top: 127px; position: absolute; text-align: center; justify-content: center; display: flex; flex-direction: column; color: white; font-size: 32px; font-family: Michroma; font-weight: 400; word-wrap: break-word">Shift</div>
+  </div>
+</div>
+
+<script>
+    const barCount = 35;
+    const maxRpm = 7000;
+    const shiftLightRpm = 5500;
+    const bars = document.getElementById('rpm-bars');
+
+    const coolandTempBG = document.getElementById('coolantTempBG');
+    const oilTempBG = document.getElementById('oilTempBG');
+    const intakeAirTempBG = document.getElementById('intakeAirTempBG');
+
+    const coolantTempLabel = document.getElementById('coolantTempLabel');
+    const oilTempLabel = document.getElementById('oilTempLabel');
+    const iatLabel = document.getElementById('iatLabel');
+
+    const shiftIndicator = document.getElementById('shift-indicator');
+
+    var shiftLightActive = false;
+
+    shiftIndicator.style.display = 'none'; // Hide the shift indicator by default
+
+    coolandTempBG.style.background = '#000000';
+    oilTempBG.style.background = '#000000';
+    intakeAirTempBG.style.background = '#000000';
+
+    for (let i = 0; i < barCount; i++) {
+        const bar = document.createElement('div');
+        bar.className = 'rpm-bar';
+
+        if (i < 23) {
+            bar.style.background = '#095600';
+        } else if (i < 30) {
+            bar.style.background = '#666300';
+        } else {
+            bar.style.background = '#740000';
+        }
+
+        bars.appendChild(bar);
+    }
+
+    function updateRpmbar(rpm) {
+        rpm = Math.max(0, Math.min(Number(rpm) || 0, maxRpm));
+
+        const activeBars = Math.round((rpm / maxRpm) * barCount);
+
+        document.querySelectorAll('.rpm-bar').forEach((bar, index) => {
+            bar.classList.toggle('active', index < activeBars);
+        });
+
+        // if rpm >= 6000, flash the shift indicator every 500ms
+        if (rpm >= shiftLightRpm) {
+            if (shiftLightActive) return;
+            shiftIndicator.style.display = 'block';
+            if (!shiftIndicator.flashInterval) {
+                shiftIndicator.flashInterval = setInterval(() => {
+                    shiftIndicator.style.display = shiftIndicator.style.display === 'block' ? 'none' : 'block';
+                }, 100);
+            }
+            shiftLightActive = true;
+        } else {
+            shiftIndicator.style.display = 'none';
+            if (shiftIndicator.flashInterval) {
+                clearInterval(shiftIndicator.flashInterval);
+                shiftIndicator.flashInterval = null;
+            }
+
+            shiftLightActive = false;
+        }
+    }
+
+    var dashboard = window.BmwDashboard({onUpdate: function (values, msg) {
+        updateRpmbar(rpmValue.textContent);
+
+        if (values.raw.coolant_temp >= 215) {
+            coolantTempLabel.style.color = "white"
+            coolantTempValue.style.color = "white"
+            coolantTempBG.style.background = "red";
+        } else if (values.raw.coolant_temp >= 200) {
+            coolantTempLabel.style.color = "black"
+            coolantTempValue.style.color = "black"
+            coolantTempBG.style.background = "#fff200"
+        } else {
+            coolantTempLabel.style.color = "white"
+            coolantTempValue.style.color = "white"
+            coolantTempBG.style.background = "black"
+        }
+
+        if (values.raw.oil_temp >= 215) {
+            oilTempLabel.style.color = "white"
+            oilTempValue.style.color = "white"
+            oilTempBG.style.background = "red";
+        } else if (values.raw.oil_temp >= 200) {
+            oilTempLabel.style.color = "black"
+            oilTempValue.style.color = "black"
+            oilTempBG.style.background = "#fff200"
+        } else {
+            oilTempLabel.style.color = "white"
+            oilTempValue.style.color = "white"
+            oilTempBG.style.background = "black"
+        }
+
+        if (values.raw.iat >= 160) {
+            iatLabel.style.color = "white"
+            iatValue.style.color = "white"
+            intakeAirTempBG.style.background = "red";
+        } else if (values.raw.iat >= 150) {
+            iatLabel.style.color = "black"
+            iatValue.style.color = "black"
+            intakeAirTempBG.style.background = "#fff200"
+        } else {
+            iatLabel.style.color = "white"
+            iatValue.style.color = "white"
+            intakeAirTempBG.style.background = "black"
+        }
+    }});
+
+    updateRpmbar(rpmValue.textContent);
+</script>
+    <script>
+        var dashboard = window.BmwDashboard();
+    </script>
+</body>
+</html>

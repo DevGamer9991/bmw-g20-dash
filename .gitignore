@@ -1,7 +1,16 @@
 templates/pages/anime-nsfw.html
 templates/pages/alya.html
+templates/pages/mao-mao.html
 
 templates/static/images/alya-yell.png
 templates/static/images/alya-bg.webp
 
 templates/static/videos/anime-girl.webm
+
+templates/static/images/alya-logo.png
+
+templates/static/images/apothecary-logo.png
+
+templates/static/images/mao-mao-bg.png
+
+templates/static/images/mao-mao-cute.png

@@ -114,26 +114,21 @@ def car_polling_thread():
                 intake_air_temp_f = (intake_air_temp_c * 9/5) + 32
                 
                 oil_temp_raw = struct.unpack(">H", uds_resp[10:12])[0]
-                oil_temp_c = round(oil_temp_raw * 0.0071948, 2)
-                
-                print("Oil Temp (C):", oil_temp_c)
-                print("Oil Temp (Raw):", oil_temp_raw)
+                oil_temp_c = (oil_temp_raw * 0.75) - 48
                 
                 oil_temp_f = (oil_temp_c * 9/5) + 32
                 
                 coolant_temp_raw = struct.unpack(">H", uds_resp[12:14])[0]
-                coolant_temp_c = (coolant_temp_raw * 0.75) - 48
+                coolant_temp_c = round((coolant_temp_raw / 10) - 273.15, 2)
                 
-                # print("Coolant Temp (C):", coolant_temp_c)
-                # print("Coolant Temp (Raw):", coolant_temp_raw)
+                coolant_temp_f = (coolant_temp_c * 9/5) + 32
                 
                 coolant_temp_rad_out_raw = struct.unpack(">H", uds_resp[14:16])[0]
-                coolant_temp_rad_out_c = (coolant_temp_rad_out_raw * 0.75) - 48
+                coolant_temp_rad_out_c = round((coolant_temp_rad_out_raw / 10) - 273.15, 2)
                 
-                # print("Coolant Temp (Radiator Outlet) (C):", coolant_temp_rad_out_c)
-                # print("Coolant Temp (Radiator Outlet) (Raw):", coolant_temp_rad_out_raw)
+                coolant_temp_rad_out_f = (coolant_temp_rad_out_c * 9/5) + 32
 
-                socketio.emit('car_data', {'rpm': rpm, 'boost_pressure': boost_psi, 'intake_air_temp': round(intake_air_temp_f), 'oil_temp': round(oil_temp_f)})
+                socketio.emit('car_data', {'rpm': rpm, 'boost_pressure': boost_psi, 'intake_air_temp': round(intake_air_temp_f), 'oil_temp': round(oil_temp_f), 'coolant_temp': round(coolant_temp_f), 'coolant_temp_rad_out': round(coolant_temp_rad_out_f)})
 
             elif uds_resp.startswith(b"\x7F"):
                 print(f"[-] ECU busy/NACK: {uds_resp.hex()}")
