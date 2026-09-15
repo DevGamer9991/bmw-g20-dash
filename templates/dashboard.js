@@ -9,6 +9,8 @@
         var coolantTempValue = document.getElementById(options.coolantTempId || 'coolantTempValue');
         var coolantTempRadOutValue = document.getElementById(options.coolantTempRadOutId || 'coolantTempRadOutValue');
         var oilTempValue = document.getElementById(options.oilTempId || 'oilTempValue');
+        var oilPressureValue = document.getElementById(options.oilPressureId || 'oilPressureValue');
+        var gearValue = document.getElementById(options.gearId || 'gearValue');
 
         var onUpdate = typeof options.onUpdate === 'function' ? options.onUpdate : null;
         var timeoutHandle = null;
@@ -20,6 +22,8 @@
             if (coolantTempValue) coolantTempValue.textContent = '---°';
             if (coolantTempRadOutValue) coolantTempRadOutValue.textContent = '---°';
             if (oilTempValue) oilTempValue.textContent = '---°';
+            if (oilPressureValue) oilPressureValue.textContent = '--- psi';
+            if (gearValue) gearValue.textContent = '---';
 
             window.dashboardValues = {
                 rpm: '----',
@@ -28,13 +32,17 @@
                 coolantTemp: '---°',
                 coolantTempRadOut: '---°',
                 oilTemp: '---°',
+                oilPressure: '--- psi',
+                gear: '---',
                 raw: {
                     rpm: null,
                     boost: null,
                     iat: null,
                     coolantTemp: null,
                     coolantTempRadOut: null,
-                    oilTemp: null
+                    oilTemp: null,
+                    oilPressure: null,
+                    gear: null
                 }
             };
         }
@@ -142,6 +150,36 @@
             return oilTempText;
         }
 
+        function updateOilPressure(oil_pressure) {
+            if (!oilPressureValue) return;
+
+            if (oil_pressure === "---" || oil_pressure === undefined || oil_pressure === null || oil_pressure === "") {
+                oilPressureValue.textContent = "--- psi";
+                scheduleReset();
+                return "--- psi";
+            }
+            
+            var oilPressureText = String(oil_pressure) + " psi";
+            oilPressureValue.textContent = oilPressureText;
+            scheduleReset();
+            return oilPressureText;
+        }
+
+        function updateGear(gear) {
+            if (!gearValue) return;
+            
+            if (gear === "---" || gear === undefined || gear === null || gear === "") {
+                gearValue.textContent = "---";
+                scheduleReset();
+                return "---";
+            }
+
+            var gearText = String(gear);
+            gearValue.textContent = gearText;
+            scheduleReset();
+            return gearText;
+        }
+
         function emitUpdate(msg) {
             var rpmText = updateRPM(msg && msg.rpm);
             var boostText = updateBoost(msg && msg.boost_pressure);
@@ -149,6 +187,8 @@
             var coolantTempText = updateCoolantTemp(msg && msg.coolant_temp);
             var coolantTempRadOutText = updateCoolantTempRadOut(msg && msg.coolant_temp_rad_out);
             var oilTempText = updateOilTemp(msg && msg.oil_temp);
+            var oilPressureText = updateOilPressure(msg && msg.oil_pressure);
+            var gearText = updateGear(msg && msg.gear);
 
             var values = {
                 rpm: rpmText,
@@ -157,13 +197,17 @@
                 coolant_temp: coolantTempText,
                 coolant_temp_rad_out: coolantTempRadOutText,
                 oil_temp: oilTempText,
+                oil_pressure: msg && msg.oil_pressure ? String(msg.oil_pressure) + " psi" : "--- psi",
+                gear: msg && msg.gear ? String(msg.gear) : "---",
                 raw: {
                     rpm: msg && msg.rpm,
                     boost: msg && msg.boost_pressure,
                     iat: msg && msg.intake_air_temp,
                     coolant_temp: msg && msg.coolant_temp,
                     coolant_temp_rad_out: msg && msg.coolant_temp_rad_out,
-                    oil_temp: msg && msg.oil_temp
+                    oil_temp: msg && msg.oil_temp,
+                    oil_pressure: msg && msg.oil_pressure,
+                    gear: msg && msg.gear
                 }
             };
 
@@ -196,6 +240,8 @@
             updateIAT: updateIAT,
             updateCoolantTemp: updateCoolantTemp,
             updateOilTemp: updateOilTemp,
+            updateOilPressure: updateOilPressure,
+            updateGear: updateGear,
             emitUpdate: emitUpdate,
             resetToPlaceholder: resetToPlaceholder,
             values: window.dashboardValues

@@ -53,6 +53,8 @@ def car_polling_thread():
         print(f"[*] Connecting to {AGENT_IP}:{AGENT_PORT}...")
         sock.connect((AGENT_IP, AGENT_PORT))
         print("[+] Connected!")
+        
+        # Primary Payload
 
         # Clear previous
         send_hsfz_command(sock, bytes.fromhex("2C 03 F3 00"))
@@ -85,10 +87,36 @@ def car_polling_thread():
         # Coolant Temp (Radiator Outlet)
         send_hsfz_command(sock, bytes.fromhex("2C 01 F3 00 4A 21 01 02"))
         read_hsfz_response(sock)
+        
+        #Acc Pedal %
+        send_hsfz_command(sock, bytes.fromhex("2c 01 f3 00 58 14 01 02"))
+        read_hsfz_response(sock)
+        
+        # HPFP (Act) should be 1950 psi
+        send_hsfz_command(sock, bytes.fromhex("2c 01 f3 00 56 d7 01 02"))
+        read_hsfz_response(sock)
+        
+        # Gear
+        send_hsfz_command(sock, bytes.fromhex("2c 01 f3 00 58 81 01 01"))
+        read_hsfz_response(sock)
+        
+        
+        # Secondary Payload
+        
+        # Oil Pressure (Act) should be 20-23 psi on idle
+        send_hsfz_command(sock, bytes.fromhex("2c 02 f3 01 24 60 00 29 2e 00 02"))
+        read_hsfz_response(sock)
 
         read_payload = bytes.fromhex("22 F3 00")
+        read_secondary_payload = bytes.fromhex("22 F3 01")
 
         while True:
+            send_hsfz_command(sock, read_secondary_payload)
+            uds_resp = read_hsfz_response(sock)
+
+            if uds_resp.startswith(b"b\xf3\x01"):
+                oil_pressure_raw = struct.unpack("<H", uds_resp[3:5])[0]
+
             send_hsfz_command(sock, read_payload)
             uds_resp = read_hsfz_response(sock)
 
@@ -127,11 +155,17 @@ def car_polling_thread():
                 coolant_temp_rad_out_c = round((coolant_temp_rad_out_raw / 10) - 273.15, 2)
                 
                 coolant_temp_rad_out_f = (coolant_temp_rad_out_c * 9/5) + 32
-
-                socketio.emit('car_data', {'rpm': rpm, 'boost_pressure': boost_psi, 'intake_air_temp': round(intake_air_temp_f), 'oil_temp': round(oil_temp_f), 'coolant_temp': round(coolant_temp_f), 'coolant_temp_rad_out': round(coolant_temp_rad_out_f)})
+                
+                #gear - its a literal 01 02 03
+                gear =  uds_resp[16]
 
             elif uds_resp.startswith(b"\x7F"):
                 print(f"[-] ECU busy/NACK: {uds_resp.hex()}")
+                
+            ambient_pressure_psi = ambient_pressure_raw * 0.0145038
+            oil_pressure = (oil_pressure_raw - 1013.25) * 0.0145038
+                
+            socketio.emit('car_data', {'rpm': rpm, 'boost_pressure': boost_psi, 'intake_air_temp': round(intake_air_temp_f), 'oil_temp': round(oil_temp_f), 'coolant_temp': round(coolant_temp_f), 'coolant_temp_rad_out': round(coolant_temp_rad_out_f), "oil_pressure": round(oil_pressure, 2), "gear": gear})
 
             time.sleep(0.1)
             
